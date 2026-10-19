@@ -359,6 +359,8 @@ model Rating {
   stars     Int
   comment   String   @default("")
   feltSafe  Boolean
+  // Se suma al promedio público recién cuando se revela (calificación ciega).
+  applied   Boolean  @default(false)
   createdAt DateTime @default(now())
 
   @@unique([bookingId, raterId])
