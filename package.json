@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "seed": "node --experimental-strip-types prisma/seed.ts",
+    "seed": "node --env-file=.env --experimental-strip-types prisma/seed.ts",
     "test": "vitest run"
   },
   "dependencies": {
