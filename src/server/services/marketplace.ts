@@ -35,6 +35,7 @@ export const requestSchema = z.object({
 export type RequestInput = z.infer<typeof requestSchema>;
 
 const HOUR = 3_600_000;
+const MAX_OPEN_REQUESTS = 3;
 
 // shortcut: carga a todos los trabajadores activos y filtra en memoria; con miles de trabajadores, prefiltrar por celda geográfica (PostGIS o H3).
 async function loadCandidates(clientId: string, at: Date, minutes: number, urgent: boolean): Promise<Candidate[]> {
@@ -157,6 +158,9 @@ export function publicName(full: string): string {
 
 export async function requestBooking(client: User, input: RequestInput, workerId?: string) {
   if (client.status !== "ACTIVE") throw new MarketError("Verifica tu identidad antes de pedir un servicio.");
+  // Freno al abuso: cada solicitud notifica a una persona real.
+  const open = await db.booking.count({ where: { clientId: client.id, status: "REQUESTED" } });
+  if (open >= MAX_OPEN_REQUESTS) throw new MarketError("Tienes varias solicitudes esperando respuesta. Espera o cancela alguna.");
   const { req, at } = await buildRequest(client, input);
   const ranked = match(req, await loadCandidates(client.id, at, input.minutes, input.urgent), new Date()).ranked;
   const profiles = new Map(

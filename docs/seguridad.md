@@ -46,3 +46,10 @@ Fronteras de confianza: navegador (formularios, archivos, GPS), enlaces comparti
 5. Cron externo cada minuto contra `/api/cron` con `CRON_SECRET`.
 6. Revisión legal de términos, Ley 21.431 y Ley 21.719, y pentest externo.
 7. Protocolo escrito de la central con tiempos de respuesta y coordinación con Carabineros.
+
+## Dependencias (auditoría del 2026-10-19)
+
+- Next.js actualizado a 15.5.28: corrige la RCE crítica en el protocolo flight de React y los avisos de Server Actions.
+- `sharp` actualizado; además el optimizador de imágenes está apagado (`images.unoptimized`), porque las imágenes privadas se sirven por `/api/files`.
+- Diferido: avisos altos en `prisma` y `@prisma/config` (deepmerge-ts, effect). Afectan solo al CLI de Prisma en desarrollo y despliegue, no al cliente en ejecución, y la corrección exige migrar a Prisma 7 (cambio mayor). Revisar al migrar a Postgres, a más tardar el 2026-12-01.
+- Diferido: PostCSS anidado en Next 15 procesa solo el CSS propio al compilar; no recibe datos de usuarios. Se resuelve al subir a Next 16. Misma fecha de revisión.
