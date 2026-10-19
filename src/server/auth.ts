@@ -32,7 +32,7 @@ export async function requestOtp(rawPhone: string): Promise<{ phone: string; dev
   return PROD ? { phone } : { phone, devCode: code };
 }
 
-export async function verifyOtp(rawPhone: string, code: string): Promise<"LOGGED_IN" | "SIGNUP"> {
+export async function verifyOtp(rawPhone: string, code: string): Promise<Role | "SIGNUP"> {
   const phone = normalizePhone(rawPhone);
   if (!phone || !/^\d{6}$/.test(code)) throw new AuthError("Código inválido.");
   const ch = await db.otpChallenge.findFirst({
@@ -50,7 +50,7 @@ export async function verifyOtp(rawPhone: string, code: string): Promise<"LOGGED
   const user = await db.user.findUnique({ where: { phone } });
   if (user && user.status !== "DELETED") {
     await createSession(user.id);
-    return "LOGGED_IN";
+    return user.role;
   }
   // Teléfono verificado pero sin cuenta: se guarda sellado (cifrado y autenticado) por 15 minutos.
   (await cookies()).set(PHONE_COOKIE, sealJson({ phone, exp: Date.now() + OTP_WINDOW_MS }), { ...cookieBase, maxAge: 900 });

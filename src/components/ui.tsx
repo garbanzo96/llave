@@ -1,8 +1,9 @@
 // Kit visual de Llave (mundo cuaderno). Componentes sin estado, usables desde Server Components.
 import Link from "next/link";
-import { ArrowLeft, BadgeCheck, Clock, ShieldAlert } from "lucide-react";
+import { ArrowLeft, BadgeCheck, Clock, Phone, ShieldAlert } from "lucide-react";
 import { STATUS_LABEL, type Status } from "@/lib/core/booking-machine";
 import { clp } from "@/lib/core/pricing";
+import { EMERGENCY_NUMBERS } from "@/lib/core/safety";
 
 export function cx(...c: (string | false | null | undefined)[]) {
   return c.filter(Boolean).join(" ");
@@ -269,6 +270,24 @@ export function TrustBadges({ badges }: { badges: { kind: string; expiresAt: Dat
             {b.kind === "SEC_LICENSE" ? (b.license === "SEC_GAS" ? "SEC gas" : "SEC eléctrica") : VERIFICATION_LABEL[b.kind]}
             {b.expiresAt && <span className="font-normal"> · vence {new Date(b.expiresAt).toLocaleDateString("es-CL", { month: "short", year: "2-digit" })}</span>}
           </Badge>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+export function EmergencyNumbers() {
+  return (
+    <ul className="grid grid-cols-2 gap-2">
+      {EMERGENCY_NUMBERS.map((n) => (
+        <li key={n.number}>
+          <a href={`tel:${n.number}`} className="flex min-h-14 items-center gap-2 rounded-md border border-rule bg-paper px-3 py-1.5 hover:border-ink">
+            <Phone size={16} aria-hidden className="shrink-0 text-margin" />
+            <span className="leading-tight">
+              <span className="tabular block font-bold text-graphite">{n.number}</span>
+              <span className="block text-[0.85rem] text-graphite-2">{n.label}</span>
+            </span>
+          </a>
         </li>
       ))}
     </ul>

@@ -23,7 +23,7 @@ export async function requestOtpAction(_: State, f: FormData) {
 export async function verifyOtpAction(_: State, f: FormData) {
   const r = await run(() => verifyOtp(str(f, "phone"), str(f, "code")));
   if (!r.ok) return r;
-  redirect(r.data === "SIGNUP" ? "/registro" : "/inicio");
+  redirect(!r.data || r.data === "SIGNUP" ? "/registro" : homeFor(r.data));
 }
 
 export async function signupAction(_: State, f: FormData) {

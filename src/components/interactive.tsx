@@ -3,11 +3,10 @@
 import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
-import { Camera, LoaderCircle, LocateFixed, Phone, ShieldAlert } from "lucide-react";
+import { Camera, LoaderCircle, LocateFixed, ShieldAlert } from "lucide-react";
 import type { ActionResult } from "@/server/action";
-import { buttonClass, cx, Notice } from "./ui";
+import { buttonClass, cx, EmergencyNumbers, Notice } from "./ui";
 import { markSafeAction, sosAction } from "@/app/actions";
-import { EMERGENCY_NUMBERS } from "@/lib/core/safety";
 
 type FormAction = (state: ActionResult<unknown> | null, f: FormData) => Promise<ActionResult<unknown> | null>;
 
@@ -283,17 +282,7 @@ export function SafetyRail({ bookingId, openSosId }: { bookingId?: string; openS
             </>
           )}
           {msg && <Notice tone="info">{msg}</Notice>}
-          <ul className="grid grid-cols-2 gap-2">
-            {EMERGENCY_NUMBERS.map((n) => (
-              <li key={n.number}>
-                <a href={`tel:${n.number}`} className="flex min-h-12 items-center gap-2 rounded-md border border-rule px-3 font-bold text-graphite hover:border-ink">
-                  <Phone size={16} aria-hidden className="text-margin" />
-                  <span className="tabular">{n.number}</span>
-                  <span className="truncate text-[0.85rem] font-normal text-graphite-2">{n.label}</span>
-                </a>
-              </li>
-            ))}
-          </ul>
+          <EmergencyNumbers />
           <form method="dialog">
             <button className={buttonClass("ghost")}>Cerrar</button>
           </form>

@@ -1,10 +1,10 @@
-import { Phone, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { requireUser, homeFor } from "@/server/auth";
 import { db } from "@/server/db";
 import { addContactAction, removeContactAction } from "@/app/actions";
 import { ActionButton, ActionForm, SafetyRail, SubmitButton } from "@/components/interactive";
-import { Field, inputClass, Page, Section } from "@/components/ui";
-import { EMERGENCY_NUMBERS, MAX_TRUSTED_CONTACTS } from "@/lib/core/safety";
+import { EmergencyNumbers, Field, inputClass, Page, Section } from "@/components/ui";
+import { MAX_TRUSTED_CONTACTS } from "@/lib/core/safety";
 
 export const metadata = { title: "Seguridad" };
 
@@ -54,17 +54,7 @@ export default async function Seguridad() {
       </Section>
 
       <Section title="Emergencias">
-        <ul className="grid grid-cols-2 gap-2">
-          {EMERGENCY_NUMBERS.map((n) => (
-            <li key={n.number}>
-              <a href={`tel:${n.number}`} className="flex min-h-12 items-center gap-2 rounded-md border border-rule bg-paper px-3 hover:border-ink">
-                <Phone size={16} aria-hidden className="text-margin" />
-                <span className="tabular font-bold">{n.number}</span>
-                <span className="truncate text-[0.9rem] text-graphite-2">{n.label}</span>
-              </a>
-            </li>
-          ))}
-        </ul>
+        <EmergencyNumbers />
       </Section>
 
       <Section title="Cómo te cuidamos">

@@ -1,5 +1,5 @@
 "use client";
-import { useActionState, useMemo, useState } from "react";
+import { useActionState, useMemo, useRef, useState } from "react";
 import { MapPin, Repeat } from "lucide-react";
 import { requestBookingAction, searchAction } from "@/app/actions";
 import { SubmitButton } from "@/components/interactive";
@@ -45,6 +45,8 @@ export function RequestForm({
   const [when, setWhen] = useState(localInput(tomorrow));
   const [search, doSearch] = useActionState(searchAction, null);
   const [booking, doBook] = useActionState(requestBookingAction, null);
+  // React no permite `name` en un botón con formAction: la elección viaja en un campo oculto.
+  const chosen = useRef<HTMLInputElement>(null);
   const results = (search?.ok ? (search.data as Result[]) : null) ?? null;
   const durations = info.pricing === "HOURLY" ? [120, 180, 240, 300, 360, 480] : [60, 90, 120, 180];
   const scheduledIso = urgent ? "" : new Date(when).toISOString();
@@ -55,6 +57,7 @@ export function RequestForm({
       <input type="hidden" name="category" value={category} />
       <input type="hidden" name="scheduledAt" value={scheduledIso} />
       <input type="hidden" name="urgent" value={urgent ? "true" : "false"} />
+      <input type="hidden" name="workerId" ref={chosen} defaultValue="" />
 
       {info.urgentAllowed && (
         <fieldset className="grid grid-cols-2 gap-2">
@@ -169,7 +172,12 @@ export function RequestForm({
                   <Money value={r.price.total} className="text-[1.15rem] font-bold text-ink" />
                 </div>
                 {r.bio && <p className="text-graphite-2">{r.bio}</p>}
-                <button type="submit" name="workerId" value={r.id} formAction={doBook} className="inline-flex min-h-12 w-full items-center justify-center rounded-md bg-ink px-5 font-bold text-paper shadow-[0_2px_0_var(--ink-strong)] hover:bg-ink-strong">
+                <button
+                  type="submit"
+                  formAction={doBook}
+                  onClick={() => {
+                    if (chosen.current) chosen.current.value = r.id;
+                  }} className="inline-flex min-h-12 w-full items-center justify-center rounded-md bg-ink px-5 font-bold text-paper shadow-[0_2px_0_var(--ink-strong)] hover:bg-ink-strong">
                   Invitar a {r.name.split(" ")[0]}
                 </button>
               </li>
@@ -185,7 +193,13 @@ export function RequestForm({
             ubicada; si no responde en 45 segundos, a la siguiente. Autorizamos hasta <Money value={maxUrgent} /> (incluye 30% de recargo por urgencia) y cobramos el
             precio real de quien acepte.
           </Notice>
-          <button type="submit" formAction={doBook} className="inline-flex min-h-12 w-full items-center justify-center rounded-md bg-margin px-5 font-bold text-paper hover:bg-margin-strong">
+          <button
+            type="submit"
+            formAction={doBook}
+            onClick={() => {
+              if (chosen.current) chosen.current.value = "";
+            }}
+            className="inline-flex min-h-12 w-full items-center justify-center rounded-md bg-margin px-5 font-bold text-paper hover:bg-margin-strong">
             Pedir urgencia ahora
           </button>
         </section>

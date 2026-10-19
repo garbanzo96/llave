@@ -62,6 +62,9 @@ export async function sharedView(token: string) {
 // Botón de emergencia. Silencioso por defecto: quien está dentro de una casa ajena no siempre puede llamar.
 export async function sos(user: User, input: { bookingId?: string; lat?: number; lng?: number; silent: boolean }) {
   if (input.bookingId) await participant(user, input.bookingId);
+  // Coordenadas que vienen del navegador: se descartan si no son válidas, pero la alerta sale igual.
+  const valid = Number.isFinite(input.lat) && Number.isFinite(input.lng) && Math.abs(input.lat!) <= 90 && Math.abs(input.lng!) <= 180;
+  if (!valid) input = { ...input, lat: undefined, lng: undefined };
   const incident = await db.safetyIncident.create({
     data: {
       bookingId: input.bookingId,
