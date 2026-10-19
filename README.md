@@ -1,36 +1,48 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Llave
 
-## Getting Started
+Plataforma chilena que conecta hogares con trabajadoras y trabajadores independientes de limpieza, jardinería, gasfitería, gas y electricidad. El match funciona como el de Uber; la diferencia es la capa de confianza para dejar entrar a alguien a la casa, y para entrar sola o solo a una casa ajena.
 
-First, run the development server:
+MVP funcional de punta a punta: registro con OTP, verificación de identidad y antecedentes con revisión de la central, match agendado y de urgencia, llegada con selfie y PIN, fotos del trabajo, presupuestos adicionales, pago en custodia, calificación ciega, botón de ayuda silencioso, chequeo de bienestar, seguimiento compartido y central de seguridad.
+
+## Probar en local
+
+Requiere Node 22.
 
 ```bash
+npm install
+cp .env.example .env   # y completa DATA_KEY con: openssl rand -hex 32
+npx prisma migrate dev
+npm run seed
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abre http://localhost:3000 y entra con un celular de la tabla. En desarrollo el código OTP aparece en pantalla (y en la consola del servidor).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Rol | Nombre | Celular |
+|---|---|---|
+| Central | Central Llave | 9 0000 0001 |
+| Cliente verificada | Camila Rojas | 9 1111 1111 |
+| Cliente sin verificar | Luis Pérez | 9 3333 3333 |
+| Limpieza | María José Soto | 9 4444 4444 |
+| Limpieza y jardín (en prueba) | Rosa Huenchumilla | 9 5555 5555 |
+| Gasfitería y gas SEC | Jorge Muñoz | 9 6666 6666 |
+| Electricidad SEC | Pedro Araya | 9 7777 7777 |
+| Postulante pendiente | Carolina Fuentes | 9 8888 8888 |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Recorrido sugerido: Camila pide limpieza agendada e invita a María José → María José acepta en otra ventana (o navegador privado) → "Voy en camino" → "Llegué" (el navegador debe dar una ubicación a menos de 200 m de la dirección de Camila; en Chrome se simula en DevTools › Sensors con -33.4263, -70.6110) → selfie → Camila confirma identidad y ve su PIN → María José ingresa el PIN → fotos → terminar → Camila confirma y califica.
 
-## Learn More
+Pruebas: `npm test`.
 
-To learn more about Next.js, take a look at the following resources:
+## Estructura
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `src/lib/core/`: algoritmos puros con tests (match, precios, máquina de estados, seguridad, RUT).
+- `src/server/`: sesiones, cifrado, almacenamiento, pagos y servicios de dominio. Solo se llama desde el servidor.
+- `src/app/actions.ts`: todas las Server Actions (autenticación, autorización y validación en el borde).
+- `src/app/c`, `src/app/t`, `src/app/central`: cliente, trabajador/a y central.
+- `docs/investigacion.md`: ingeniería inversa de DiDi (recursos del bundle iOS), Uber y plataformas similares, y el marco legal chileno.
+- `docs/seguridad.md`: modelo de amenazas, controles y lo que falta antes de producción.
+- `docs/blueprint.md`: diseño original del producto.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Antes de lanzar
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Ver `docs/seguridad.md`, sección "Pendiente antes de producción". En corto: SMS real, pasarela de pagos (Mercado Pago o Flow), Postgres y almacenamiento de objetos, cron cada minuto contra `/api/cron`, revisión legal y pentest.

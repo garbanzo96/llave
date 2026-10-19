@@ -181,7 +181,8 @@ export function Countdown({ to, onEnd }: { to: Date | string; onEnd?: () => void
       setLeft(l);
       if (l === 0) {
         clearInterval(t);
-        onEnd ? onEnd() : router.refresh();
+        if (onEnd) onEnd();
+        else router.refresh();
       }
     }, 1000);
     return () => clearInterval(t);
