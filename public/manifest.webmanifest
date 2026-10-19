@@ -1,0 +1,11 @@
+{
+  "name": "Llave",
+  "short_name": "Llave",
+  "description": "Servicios del hogar con personas verificadas",
+  "start_url": "/inicio",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "lang": "es-CL",
+  "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+}

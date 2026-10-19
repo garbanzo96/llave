@@ -1,26 +1,142 @@
 @import "tailwindcss";
 
+/* Mundo: cuaderno cuadriculado. Papel blanco, cuadrícula celeste, tinta azul de lápiz pasta, margen rojo = seguridad. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --paper: #ffffff;
+  --paper-2: #f5f8fb;
+  --grid: #dcebf3;
+  --ink: #1d2c94;
+  --ink-strong: #121d6b;
+  --ink-tint: #e9ecfa;
+  --graphite: #1f2329;
+  --graphite-2: #4f5661;
+  --rule: #d9dee6;
+  --margin: #c8102e;
+  --margin-strong: #9e0b23;
+  --margin-tint: #fdebee;
+  --ok: #17663f;
+  --ok-tint: #e3f2ea;
+  --warn: #8a5300;
+  --warn-tint: #fff2db;
+  --cell: 24px;
+  --margin-x: 44px;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-paper: var(--paper);
+  --color-paper-2: var(--paper-2);
+  --color-ink: var(--ink);
+  --color-ink-strong: var(--ink-strong);
+  --color-ink-tint: var(--ink-tint);
+  --color-graphite: var(--graphite);
+  --color-graphite-2: var(--graphite-2);
+  --color-rule: var(--rule);
+  --color-margin: var(--margin);
+  --color-margin-strong: var(--margin-strong);
+  --color-margin-tint: var(--margin-tint);
+  --color-ok: var(--ok);
+  --color-ok-tint: var(--ok-tint);
+  --color-warn: var(--warn);
+  --color-warn-tint: var(--warn-tint);
+  --font-sans: var(--font-atkinson), ui-sans-serif, system-ui, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(to right, var(--grid) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid) 1px, transparent 1px);
+  background-size: var(--cell) var(--cell);
+  color: var(--graphite);
+  font-family: var(--font-sans);
+  font-size: 17px;
+  line-height: 1.5;
+  min-height: 100dvh;
+}
+
+/* El margen rojo del cuaderno, fijo a la izquierda: ahí vive la ayuda. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0 auto 0 calc(var(--margin-x) - 2px);
+  width: 2px;
+  background: var(--margin);
+  opacity: 0.85;
+  pointer-events: none;
+  z-index: 0;
+}
+
+::selection {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+* {
+  caret-color: var(--ink);
+}
+
+:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+a {
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+button,
+[role="button"],
+input[type="submit"] {
+  touch-action: manipulation;
+  user-select: none;
+}
+
+/* Inputs a 17px: iOS no hace zoom bajo 16px. */
+input,
+select,
+textarea {
+  font-size: 17px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@keyframes ink-in {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+/* Una sola animación de autor: el estado nuevo se "escribe" de izquierda a derecha, como tinta. */
+.ink-in {
+  animation: ink-in 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes hold-fill {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
 }
