@@ -1,0 +1,437 @@
+// Llave: modelo de datos.
+// shortcut: SQLite para desarrollo local; en producción cambiar provider a "postgresql" y regenerar migraciones.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CLIENT
+  WORKER
+  ADMIN
+}
+
+enum Gender {
+  FEMALE
+  MALE
+  OTHER
+  UNDISCLOSED
+}
+
+enum UserStatus {
+  PENDING_VERIFICATION
+  ACTIVE
+  SUSPENDED
+  DELETED
+}
+
+enum GenderPref {
+  ANY
+  FEMALE_ONLY
+}
+
+model User {
+  id                  String     @id @default(cuid())
+  role                Role
+  phone               String     @unique
+  name                String
+  rut                 String?    @unique
+  gender              Gender     @default(UNDISCLOSED)
+  status              UserStatus @default(PENDING_VERIFICATION)
+  photoDocId          String?
+  termsVersion        String?
+  termsAcceptedAt     DateTime?
+  ratingSum           Int        @default(0)
+  ratingCount         Int        @default(0)
+  completedCount      Int        @default(0)
+  deletionRequestedAt DateTime?
+  createdAt           DateTime   @default(now())
+
+  sessions        Session[]
+  verifications   Verification[]
+  documents       Document[]
+  addresses       Address[]
+  trustedContacts TrustedContact[]
+  worker          WorkerProfile?
+  client          ClientProfile?
+  bookingsAsClient Booking[]     @relation("ClientBookings")
+  bookingsAsWorker Booking[]     @relation("WorkerBookings")
+  offers          Offer[]
+  messages        Message[]
+  ratingsGiven    Rating[]       @relation("RatingsGiven")
+  ratingsReceived Rating[]       @relation("RatingsReceived")
+  blocksMade      Block[]        @relation("BlocksMade")
+  blocksReceived  Block[]        @relation("BlocksReceived")
+  incidents       SafetyIncident[] @relation("IncidentReporter")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model OtpChallenge {
+  id         String    @id @default(cuid())
+  phone      String
+  codeHash   String
+  attempts   Int       @default(0)
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([phone, createdAt])
+}
+
+enum VerificationKind {
+  IDENTITY
+  CRIMINAL_RECORD
+  MINORS_REGISTRY
+  SEC_LICENSE
+  REFERENCES
+}
+
+enum VerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  EXPIRED
+}
+
+model Verification {
+  id            String             @id @default(cuid())
+  userId        String
+  user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind          VerificationKind
+  status        VerificationStatus @default(PENDING)
+  // JSON: folio del certificado, número y clase de licencia SEC, referencias, etc.
+  data          String             @default("{}")
+  // Código aleatorio que la persona escribe a mano y muestra en la selfie (anti reutilización de fotos).
+  challengeCode String?
+  reviewerId    String?
+  reviewedAt    DateTime?
+  rejectReason  String?
+  expiresAt     DateTime?
+  createdAt     DateTime           @default(now())
+  documents     Document[]
+
+  @@index([status, kind])
+  @@index([userId, kind])
+}
+
+enum DocumentKind {
+  ID_FRONT
+  ID_BACK
+  SELFIE
+  CERTIFICATE
+  LICENSE
+  PHOTO_BEFORE
+  PHOTO_AFTER
+  START_SELFIE
+  PROFILE_PHOTO
+}
+
+model Document {
+  id             String        @id @default(cuid())
+  ownerId        String
+  owner          User          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  verificationId String?
+  verification   Verification? @relation(fields: [verificationId], references: [id], onDelete: SetNull)
+  bookingId      String?
+  booking        Booking?      @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  kind           DocumentKind
+  storageKey     String        @unique
+  mime           String
+  sha256         String
+  purgeAfter     DateTime?
+  createdAt      DateTime      @default(now())
+}
+
+model WorkerProfile {
+  userId           String     @id
+  user             User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // JSON array de Category
+  categories       String     @default("[]")
+  bio              String     @default("")
+  hourlyRate       Int        @default(0) // CLP, lo fija el trabajador (Ley 21.431: independiente)
+  visitFee         Int        @default(0) // CLP, visita de diagnóstico
+  baseLat          Float?
+  baseLng          Float?
+  radiusKm         Float      @default(8)
+  online           Boolean    @default(false)
+  lastLat          Float?
+  lastLng          Float?
+  lastSeenAt       DateTime?
+  nightOk          Boolean    @default(false)
+  clientGenderPref GenderPref @default(ANY)
+  requireAdultHome Boolean    @default(false)
+  cancelCount      Int        @default(0)
+  lateCount        Int        @default(0)
+  offersSeen       Int        @default(0)
+  offersAccepted   Int        @default(0)
+}
+
+model ClientProfile {
+  userId           String     @id
+  user             User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workerGenderPref GenderPref @default(ANY)
+}
+
+model Address {
+  id       String    @id @default(cuid())
+  userId   String
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label    String
+  line     String
+  comuna   String
+  lat      Float
+  lng      Float
+  notes    String    @default("")
+  bookings Booking[]
+}
+
+model TrustedContact {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name   String
+  phone  String
+}
+
+enum BookingMode {
+  SCHEDULED
+  URGENT
+}
+
+enum BookingStatus {
+  REQUESTED
+  ACCEPTED
+  EN_ROUTE
+  ARRIVED
+  IN_PROGRESS
+  COMPLETED
+  SETTLED
+  DISPUTED
+  CANCELLED
+  EXPIRED
+}
+
+model Booking {
+  id                String        @id @default(cuid())
+  clientId          String
+  client            User          @relation("ClientBookings", fields: [clientId], references: [id])
+  workerId          String?
+  worker            User?         @relation("WorkerBookings", fields: [workerId], references: [id])
+  category          String
+  mode              BookingMode
+  status            BookingStatus @default(REQUESTED)
+  addressId         String
+  address           Address       @relation(fields: [addressId], references: [id])
+  scheduledAt       DateTime
+  estimatedMinutes  Int
+  description       String        @default("")
+  // JSON: { adultsHome, minorsHome, pets, workerAlone }
+  household         String        @default("{}")
+  genderPref        GenderPref    @default(ANY)
+  quotedAmount      Int           @default(0)
+  extrasAmount      Int           @default(0)
+  commissionRate    Float         @default(0.15)
+  arrivalPin        String
+  pinAttempts       Int           @default(0)
+  identityConfirmed Boolean       @default(false)
+  acceptedAt        DateTime?
+  arrivedAt         DateTime?
+  startedAt         DateTime?
+  completedAt       DateTime?
+  settledAt         DateTime?
+  disputeUntil      DateTime?
+  cancelledAt       DateTime?
+  cancelledBy       String?
+  cancelReason      String?
+  wellbeingPromptAt DateTime?
+  wellbeingAckAt    DateTime?
+  shareTokenHash    String?       @unique
+  shareExpiresAt    DateTime?
+  createdAt         DateTime      @default(now())
+
+  offers    Offer[]
+  messages  Message[]
+  ratings   Rating[]
+  quotes    Quote[]
+  payment   Payment?
+  documents Document[]
+  incidents SafetyIncident[]
+  pings     LocationPing[]
+
+  @@index([status])
+  @@index([clientId])
+  @@index([workerId])
+}
+
+enum OfferStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  EXPIRED
+}
+
+model Offer {
+  id        String      @id @default(cuid())
+  bookingId String
+  booking   Booking     @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  workerId  String
+  worker    User        @relation(fields: [workerId], references: [id])
+  status    OfferStatus @default(PENDING)
+  rank      Int
+  score     Float
+  expiresAt DateTime
+  createdAt DateTime    @default(now())
+
+  @@unique([bookingId, workerId])
+  @@index([workerId, status])
+}
+
+enum QuoteStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Quote {
+  id          String      @id @default(cuid())
+  bookingId   String
+  booking     Booking     @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  amount      Int
+  description String
+  status      QuoteStatus @default(PENDING)
+  createdAt   DateTime    @default(now())
+}
+
+enum PaymentStatus {
+  AUTHORIZED
+  CAPTURED
+  RELEASED
+  REFUNDED
+  VOIDED
+}
+
+model Payment {
+  id               String        @id @default(cuid())
+  bookingId        String        @unique
+  booking          Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  provider         String
+  providerRef      String
+  status           PaymentStatus
+  authorizedAmount Int
+  capturedAmount   Int           @default(0)
+  platformFee      Int           @default(0)
+  workerPayout     Int           @default(0)
+  updatedAt        DateTime      @updatedAt
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  bookingId String
+  booking   Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  senderId  String
+  sender    User     @relation(fields: [senderId], references: [id])
+  body      String
+  redacted  Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Rating {
+  id        String   @id @default(cuid())
+  bookingId String
+  booking   Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  raterId   String
+  rater     User     @relation("RatingsGiven", fields: [raterId], references: [id])
+  rateeId   String
+  ratee     User     @relation("RatingsReceived", fields: [rateeId], references: [id])
+  stars     Int
+  comment   String   @default("")
+  feltSafe  Boolean
+  createdAt DateTime @default(now())
+
+  @@unique([bookingId, raterId])
+}
+
+model Block {
+  blockerId String
+  blocker   User     @relation("BlocksMade", fields: [blockerId], references: [id])
+  blockedId String
+  blocked   User     @relation("BlocksReceived", fields: [blockedId], references: [id])
+  reason    String   @default("")
+  createdAt DateTime @default(now())
+
+  @@id([blockerId, blockedId])
+}
+
+enum IncidentKind {
+  SOS
+  WELLBEING_TIMEOUT
+  FELT_UNSAFE
+  PIN_LOCKOUT
+  IDENTITY_MISMATCH
+  GEOFENCE
+  REPORT
+}
+
+enum IncidentStatus {
+  OPEN
+  ACKNOWLEDGED
+  RESOLVED
+}
+
+model SafetyIncident {
+  id         String         @id @default(cuid())
+  bookingId  String?
+  booking    Booking?       @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  reporterId String?
+  reporter   User?          @relation("IncidentReporter", fields: [reporterId], references: [id])
+  kind       IncidentKind
+  status     IncidentStatus @default(OPEN)
+  silent     Boolean        @default(false)
+  lat        Float?
+  lng        Float?
+  details    String         @default("")
+  assigneeId String?
+  resolution String?
+  createdAt  DateTime       @default(now())
+  ackAt      DateTime?
+  resolvedAt DateTime?
+
+  @@index([status])
+}
+
+model LocationPing {
+  id        String   @id @default(cuid())
+  bookingId String
+  booking   Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  userId    String
+  lat       Float
+  lng       Float
+  createdAt DateTime @default(now())
+
+  @@index([bookingId, createdAt])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  action     String
+  targetType String
+  targetId   String
+  meta       String   @default("{}")
+  createdAt  DateTime @default(now())
+
+  @@index([targetType, targetId])
+}
