@@ -293,3 +293,17 @@ export function EmergencyNumbers() {
     </ul>
   );
 }
+
+// Recordatorio de conducta al llegar y durante el servicio (patrón HarassmentReminder de DiDi), para ambas partes.
+export function ConductReminder() {
+  return (
+    <Notice tone="info">
+      Llave no tolera acoso, insultos ni contacto no consentido, en ninguna dirección. Si algo te incomoda, usa el botón rojo del margen: la alerta es
+      silenciosa.
+    </Notice>
+  );
+}
+
+export function NightModeNotice() {
+  return <Notice tone="warn">Modo nocturno: el chequeo de bienestar llega a los 15 minutos de pasada la hora estimada, no a los 30.</Notice>;
+}

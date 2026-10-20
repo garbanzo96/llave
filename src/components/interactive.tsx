@@ -210,7 +210,37 @@ export function LivePing({ bookingId, ping }: { bookingId: string; ping: (lat: n
   return null;
 }
 
-// Ayuda en el margen rojo. Un toque abre el panel; enviar la alerta es un segundo toque (evita alertas desde el bolsillo).
+// Deslizar en vez de tocar: DiDi pasó su botón de emergencia a un deslizador (EmergencySliderV3) para reducir falsas alarmas.
+// Con teclado, la tecla Fin lo lleva al final.
+function SlideToSend({ disabled, onSend }: { disabled: boolean; onSend: () => void }) {
+  const [value, setValue] = useState(0);
+  return (
+    <label className="block space-y-2">
+      <span className="block font-bold text-margin-strong">Desliza hasta el final para enviar la alerta</span>
+      <input
+        type="range"
+        min={0}
+        max={100}
+        step={1}
+        value={value}
+        disabled={disabled}
+        aria-label="Deslizar para enviar la alerta de emergencia"
+        aria-valuetext={`${value}%`}
+        className="h-12 w-full cursor-grab accent-[var(--margin)] disabled:opacity-50"
+        onChange={(e) => {
+          const n = Number(e.target.value);
+          if (n >= 100) {
+            onSend();
+            setValue(0);
+          } else setValue(n);
+        }}
+        onPointerUp={() => setValue(0)}
+      />
+    </label>
+  );
+}
+
+// Ayuda en el margen rojo. Un toque abre el panel; la alerta se envía deslizando (evita alertas desde el bolsillo).
 // La alerta es silenciosa: no suena ni cambia la pantalla de forma visible para quien esté cerca.
 export function SafetyRail({ bookingId, openSosId }: { bookingId?: string; openSosId?: string | null }) {
   const dialog = useRef<HTMLDialogElement>(null);
@@ -246,11 +276,9 @@ export function SafetyRail({ bookingId, openSosId }: { bookingId?: string; openS
               <p className="text-graphite-2">
                 La alerta llega a la central de Llave con tu ubicación y los datos del servicio, y avisa a tus contactos de confianza. No hace ruido.
               </p>
-              <button
-                type="button"
+              <SlideToSend
                 disabled={pending}
-                className={buttonClass("danger")}
-                onClick={() =>
+                onSend={() =>
                   start(async () => {
                     const p = await getPosition(4000);
                     const r = await sosAction({ bookingId, lat: p?.coords.latitude, lng: p?.coords.longitude, silent: true });
@@ -258,10 +286,12 @@ export function SafetyRail({ bookingId, openSosId }: { bookingId?: string; openS
                     else setMsg(r.error);
                   })
                 }
-              >
-                {pending && <LoaderCircle size={18} className="animate-spin" aria-hidden />}
-                Enviar alerta silenciosa
-              </button>
+              />
+              {pending && (
+                <p className="flex items-center gap-2 font-bold text-margin-strong">
+                  <LoaderCircle size={18} className="animate-spin" aria-hidden /> Enviando alerta…
+                </p>
+              )}
             </>
           ) : (
             <>

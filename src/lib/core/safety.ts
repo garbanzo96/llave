@@ -1,6 +1,10 @@
+import { isNight } from "./geo";
+
 export const MAX_PIN_ATTEMPTS = 5;
 export const MAX_TRUSTED_CONTACTS = 5;
 export const WELLBEING_GRACE_MS = 30 * 60_000;
+// Modo nocturno (patrón "Owl mode" de DiDi): entre 22:00 y 07:00 el chequeo llega a la mitad del tiempo.
+export const NIGHT_WELLBEING_GRACE_MS = 15 * 60_000;
 export const WELLBEING_ACK_MS = 10 * 60_000;
 export const LATE_ARRIVAL_MS = 45 * 60_000;
 export const DELETION_WAIT_MS = 15 * 24 * 3_600_000;
@@ -55,7 +59,8 @@ export function wellbeingSweep(items: WellbeingInput[], now: Date): WellbeingAct
   const t = now.getTime();
   for (const b of items) {
     if (b.status === "IN_PROGRESS" && b.startedAt) {
-      const due = b.startedAt.getTime() + b.estimatedMinutes * 60_000 + WELLBEING_GRACE_MS;
+      const grace = isNight(b.startedAt) ? NIGHT_WELLBEING_GRACE_MS : WELLBEING_GRACE_MS;
+      const due = b.startedAt.getTime() + b.estimatedMinutes * 60_000 + grace;
       if (!b.wellbeingPromptAt && t > due) out.push({ id: b.id, kind: "PROMPT" });
       else if (b.wellbeingPromptAt && !b.wellbeingAckAt && t > b.wellbeingPromptAt.getTime() + WELLBEING_ACK_MS)
         out.push({ id: b.id, kind: "ESCALATE" });

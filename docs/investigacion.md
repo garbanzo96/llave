@@ -45,6 +45,25 @@ Límite: el ejecutable principal `GlobalPax` (169 MB) tiene `LC_ENCRYPTION_INFO_
 - "Desvincular socio": "La plataforma no te asignará de nuevo a este socio". Bloqueo mutuo sin explicación.
 - Calificación separada por dimensión y propina después del servicio.
 
+### 1.6 Pase con REA sobre el binario y el código Flutter
+
+Con REA (`open_binary` + `inspect_macho`, evidencia `ev_c270786f1d88733b9b77b2b5d26bede0f85d9a681001a3699f34b3807d848868`) se midió qué parte del ejecutable está cifrada: `LC_ENCRYPTION_INFO_64` cubre solo 4.096 bytes desde el offset 32.768, mientras `__text` mide 102 MB. Las secciones `__objc_classname` (766 KB), `__objc_methname` (8,4 MB) y `__cstring` (4,5 MB) están en claro, igual que `Frameworks/App.framework` (Flutter AOT, `cryptid 0`). Se leyeron esas secciones en los offsets que reportó REA; no se descifró nada.
+
+Observado (nombres de clases y rutas en el binario y en el AOT de Flutter):
+
+- Núcleo de seguridad: `GlobalSafetyManager`, `GlobalSafetyStatusManager`, `GlobalSafetyShieldView` (escudo de estado visible), `GlobalSafetyBubble` (avisos proactivos), `GlobalRideTripSafetyService`, `GlobalRideTripShareService`, rutas `/safety_monitor`, `/safety_panel_trip`, `/safety_record`, `/safety_protect_page`, `/safety_auth_page`, `/safety_trusted_contacts_manage`, `/openEmergencyV2`.
+- Emergencia por deslizamiento: `EmergencySliderV3`, `EmergencyStatus`, `CallEmergencyResponse` y las claves `GRider_improvement_Swipe_alarm` y `GRider_improvement_Lie_alarms` junto al modelo `LieAlarm`. Inferencia: DiDi pasó del toque al deslizamiento para reducir falsas alarmas.
+- Modo nocturno: `PassengerOwlSafetyModeController`, `PassengerOwlSafetyModeEventItemModel`, `OwlSwitchWidget`, `close_owl_mode`. Un modo de seguridad activable con eventos propios.
+- Acoso: `PassengerSafetyHarassmentReminderController` y `[PPSHarassmentReminder]`. Recordatorio de conducta con acciones.
+- Detección de anomalías del trayecto: `GMKAbnormalTrajInfo`, `GMKDriverSpeedAbnormalApollo` (trayectoria y velocidad anómalas, configurables por Apollo).
+- Grabación: `SafetyAutoRecordPageDataV2`, `AutoRecordSwitchWidget`, `RecordIntervalsManager`, `DSRecordFileUploadProcessV2` (grabación automática por intervalos y subida cifrada).
+- Privacidad en mensajes y llamadas: `UpdateMessageSensitiveRevealedRequest` (contenido sensible oculto hasta que se revela), `callPhoneProtected`, `ext_phone_protected` (números enmascarados).
+- Precio: `fare_guard_intercept_sheet`, `fare_guard_notice_sheet` (protección de tarifa).
+
+Llevado a Llave en este pase: la alerta se envía deslizando (no con un segundo toque), modo nocturno con chequeo de bienestar a los 15 minutos en vez de 30 entre 22:00 y 07:00, y recordatorio de conducta para ambas partes al llegar y durante el servicio.
+
+Pendiente, con evidencia: grabación de audio opcional por intervalos con consentimiento de ambas partes, mensajes sensibles ocultos hasta revelarlos, y alerta por permanencia anómala fuera del domicilio durante el servicio.
+
 ## 2. Uber (evidencia pública)
 
 PIN opcional que debe coincidir para iniciar el viaje; RideCheck detecta paradas largas inesperadas y pregunta si todo está bien; selfie aleatoria comparada con la identificación registrada; verificación de antecedentes antes de activar; preferencia de conductora para mujeres en algunos mercados. Despacho: candidatos en celdas vecinas puntuados por espera, reposicionamiento y probabilidad de aceptación (fuentes de terceros, inferencia).

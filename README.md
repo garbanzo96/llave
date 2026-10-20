@@ -11,11 +11,11 @@ MVP funcional de punta a punta: registro con OTP, verificación de identidad y a
 Enlace directo: https://codespaces.new/garbanzo96/llave?quickstart=1
 
 1. Abre el enlace con tu sesión de GitHub y presiona "Create codespace" (la segunda vez ofrece "Resume").
-2. La primera vez tarda 2 a 4 minutos: instala, crea la base y carga los datos de demostración.
-3. La app se abre sola en una pestaña nueva. Si el navegador bloquea la ventana, ve a la pestaña "Ports" de Codespaces y abre el puerto 3000 (Llave).
+2. La primera vez tarda 2 a 4 minutos: instala, crea la base y carga los datos de demostración. Si VS Code pregunta si confías en los autores de la carpeta, elige "Confiar": sin eso no arranca el servidor.
+3. Cuando la terminal diga "Ready", abre la pestaña "Puertos" (Ports) del panel inferior y haz clic en el globo del puerto 3000 (Llave). A veces se abre sola.
 4. Entra con un celular de la tabla de abajo; el código OTP aparece en pantalla.
 
-Para probar dos roles a la vez, usa una ventana normal y una de incógnito. El enlace es privado: solo funciona con cuentas que tengan acceso al repositorio. Codespaces se apaga solo tras 30 minutos sin uso y consume la cuota gratuita mensual de GitHub.
+Para probar dos roles a la vez, usa una ventana normal y una de incógnito. Cualquier persona con cuenta de GitHub puede abrirlo; cada codespace usa la cuota gratuita mensual de quien lo abre y se apaga solo tras 30 minutos sin uso. La app dentro del codespace es privada: su puerto solo lo ve quien lo creó.
 
 Si no estás en Santiago, la búsqueda no encontrará a nadie: entra como trabajador/a › Perfil › "Usar mi ubicación como base", y como cliente agrega una dirección con "Usar mi ubicación actual". Así la llegada (radio de 200 m) también se puede probar desde el mismo lugar.
 

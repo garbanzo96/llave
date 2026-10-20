@@ -195,6 +195,22 @@ describe("seguridad", () => {
     expect(redactContactInfo("hablemos por wsp").redacted).toBe(true);
     expect(redactContactInfo("llego a las 10:30, depto 1204").redacted).toBe(false);
   });
+  it("modo nocturno: el chequeo llega antes (15 min en vez de 30)", () => {
+    const at = (iso: string, minsAgo: number) => ({
+      id: "n",
+      status: "IN_PROGRESS",
+      scheduledAt: new Date(iso),
+      startedAt: new Date(new Date(iso).getTime() - minsAgo * 60_000),
+      arrivedAt: new Date(iso),
+      estimatedMinutes: 60,
+      wellbeingPromptAt: null,
+      wellbeingAckAt: null,
+    });
+    const night = new Date("2026-10-21T03:00:00Z"); // 00:00 Santiago
+    const day = new Date("2026-10-20T16:00:00Z"); // 13:00 Santiago
+    expect(wellbeingSweep([at(night.toISOString(), 80)], night)).toEqual([{ id: "n", kind: "PROMPT" }]);
+    expect(wellbeingSweep([at(day.toISOString(), 80)], day)).toEqual([]);
+  });
   it("chequeo de bienestar: pregunta y luego escala", () => {
     const base = {
       id: "b",

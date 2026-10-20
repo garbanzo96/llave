@@ -7,6 +7,8 @@ import { CancelForm, Chat, RatingForm, ShareTrip, WellbeingBanner } from "@/comp
 import {
   Avatar,
   ButtonLink,
+  ConductReminder,
+  NightModeNotice,
   cx,
   fmtDate,
   fmtTime,
@@ -23,6 +25,9 @@ import {
   TrustBadges,
 } from "@/components/ui";
 import type { Status } from "@/lib/core/booking-machine";
+import { isNight } from "@/lib/core/geo";
+
+const LIVE_NIGHT: Status[] = ["ACCEPTED", "EN_ROUTE", "ARRIVED", "IN_PROGRESS"];
 
 export const metadata = { title: "Servicio" };
 
@@ -118,6 +123,8 @@ export default async function ClientBooking({ params }: { params: Promise<{ id: 
       </div>
 
       {v.wellbeingPending && <WellbeingBanner bookingId={v.id} />}
+      {["ARRIVED", "IN_PROGRESS"].includes(status) && <ConductReminder />}
+      {LIVE_NIGHT.includes(status) && isNight(new Date(v.scheduledAt)) && <NightModeNotice />}
 
       {status === "REQUESTED" &&
         (v.mode === "URGENT" ? (

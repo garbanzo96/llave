@@ -5,10 +5,13 @@ import { bookingView } from "@/server/views";
 import { blockAction, completeAction, pingAction, proposeQuoteAction, startRouteAction, startSelfieAction, startWithPinAction, workPhotoAction } from "@/app/actions";
 import { ActionButton, ActionForm, AutoRefresh, CameraField, LivePing, SafetyRail, SubmitButton } from "@/components/interactive";
 import { CancelForm, Chat, RatingForm, ShareTrip, WellbeingBanner } from "@/components/booking";
-import { Avatar, buttonClass, cx, Field, fmtDate, fmtTime, inputClass, Money, Notice, Page, Section, Stars, StatusTag, StatusTrack } from "@/components/ui";
+import { Avatar, buttonClass, ConductReminder, NightModeNotice, cx, Field, fmtDate, fmtTime, inputClass, Money, Notice, Page, Section, Stars, StatusTag, StatusTrack } from "@/components/ui";
 import { CATEGORIES } from "@/lib/core/categories";
 import { MAX_PIN_ATTEMPTS } from "@/lib/core/safety";
 import type { Status } from "@/lib/core/booking-machine";
+import { isNight } from "@/lib/core/geo";
+
+const LIVE_NIGHT: Status[] = ["ACCEPTED", "EN_ROUTE", "ARRIVED", "IN_PROGRESS"];
 import { ArriveButton } from "./_components";
 
 export const metadata = { title: "Servicio" };
@@ -70,6 +73,8 @@ export default async function WorkerService({ params }: { params: Promise<{ id: 
       </div>
 
       {v.wellbeingPending && <WellbeingBanner bookingId={id} />}
+      {["ARRIVED", "IN_PROGRESS"].includes(status) && <ConductReminder />}
+      {LIVE_NIGHT.includes(status) && isNight(new Date(v.scheduledAt)) && <NightModeNotice />}
 
       {v.other && (
         <Section title="Tu cliente">
