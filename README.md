@@ -6,18 +6,17 @@ MVP funcional de punta a punta: registro con OTP, verificación de identidad y a
 
 ## Abrir la app
 
-[![Abrir Llave en Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/garbanzo96/llave?quickstart=1)
+En el navegador, sin instalar nada: **https://garbanzo96.github.io/llave/**
 
-Enlace directo: https://codespaces.new/garbanzo96/llave?quickstart=1
+Es la app real (las mismas páginas, reglas y algoritmos) corriendo entera en tu navegador. Con la barra "Demo" de arriba cambias entre cliente, trabajadora, gasfíter y central sin iniciar sesión cada vez. El GPS está simulado en Providencia, los SMS aparecen en pantalla y no hay pagos reales. Lo que hagas queda guardado solo en ese navegador; "Reiniciar" vuelve a los datos iniciales.
 
-1. Abre el enlace con tu sesión de GitHub y presiona "Create codespace" (la segunda vez ofrece "Resume").
-2. La primera vez tarda 2 a 4 minutos: instala, crea la base y carga los datos de demostración. Si VS Code pregunta si confías en los autores de la carpeta, elige "Confiar": sin eso no arranca el servidor.
-3. Cuando la terminal diga "Ready", abre la pestaña "Puertos" (Ports) del panel inferior y haz clic en el globo del puerto 3000 (Llave). A veces se abre sola.
-4. Entra con un celular de la tabla de abajo; el código OTP aparece en pantalla.
+En tu Mac, con servidor y base de datos de verdad: doble clic en `INICIAR.command` dentro de la carpeta del proyecto. La primera vez instala lo necesario (1 a 3 minutos) y después abre Chrome solo. Requiere Node 22.
 
-Para probar dos roles a la vez, usa una ventana normal y una de incógnito. Cualquier persona con cuenta de GitHub puede abrirlo; cada codespace usa la cuota gratuita mensual de quien lo abre y se apaga solo tras 30 minutos sin uso. La app dentro del codespace es privada: su puerto solo lo ve quien lo creó.
+### Cómo funciona la demo web
 
-Si no estás en Santiago, la búsqueda no encontrará a nadie: entra como trabajador/a › Perfil › "Usar mi ubicación como base", y como cliente agrega una dirección con "Usar mi ubicación actual". Así la llegada (radio de 200 m) también se puede probar desde el mismo lugar.
+`demo/` compila `src/app` para el navegador con Vite y reemplaza solo lo que necesita un servidor: Prisma por una base en memoria que lee `prisma/schema.prisma` (`demo/src/shims/prisma.ts`), la sesión, el cifrado, los SMS y los archivos (IndexedDB servido por `demo/public/sw.js`). Cada push a `main` la vuelve a publicar con `.github/workflows/pages.yml`, que antes corre `npm run test:demo`: la misma prueba de integración de la app real, pero contra la base en memoria. Si agregas una consulta de Prisma que la demo no soporta, esa prueba avisa.
+
+Comandos: `npm run demo` (local en http://localhost:5173/llave/), `npm run demo:build`, `npm run test:demo`.
 
 ## Probar en local
 

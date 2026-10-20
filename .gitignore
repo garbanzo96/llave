@@ -44,3 +44,5 @@ next-env.d.ts
 storage/
 prisma/*.db*
 !.env.example
+
+demo/dist/
