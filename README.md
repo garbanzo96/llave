@@ -10,6 +10,8 @@ En el navegador, sin instalar nada: **https://garbanzo96.github.io/llave/**
 
 Es la app real (las mismas páginas, reglas y algoritmos) corriendo entera en tu navegador. Con la barra "Demo" de arriba cambias entre cliente, trabajadora, gasfíter y central sin iniciar sesión cada vez. El GPS está simulado en Providencia, los SMS aparecen en pantalla y no hay pagos reales. Lo que hagas queda guardado solo en ese navegador; "Reiniciar" vuelve a los datos iniciales.
 
+En la carpeta, `Abrir Llave (web).webloc` abre ese mismo enlace con doble clic.
+
 En tu Mac, con servidor y base de datos de verdad: doble clic en `INICIAR.command` dentro de la carpeta del proyecto. La primera vez instala lo necesario (1 a 3 minutos) y después abre Chrome solo. Requiere Node 22.
 
 ### Cómo funciona la demo web
